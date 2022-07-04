@@ -1,0 +1,78 @@
+from news.models import *  
+
+#1
+alex_user=User.objects.create_user(username = 'alex', email = 'alex@gmail.com', password = 'alex_password')
+boris_user=User.objects.create_user(username = 'boris', email = 'boris@gmail.com', password = 'boris_password')
+
+#2
+alex = Author.objects.create(user = alex_user)
+boris = Author.objects.create(user = boris_user)
+
+#3
+cat_sport = Category.objects.create(name = "Спорт")
+cat_music = Category.objects.create(name = "Музыка")
+cat_cinema = Category.objects.create(name = "Кино")
+cat_politics = Category.objects.create(name = "Политика")
+
+#4
+text_article_sport = "спортивная статья про спорт Алекса спортивная статья про спорт Алекса спортивная статья про спорт Алекса спортивная статья про спорт Алекса "
+text_article_music_cinema = "Большая статья про музыку и кино Бориса Большая статья про музыку и кино Бориса Большая статья про музыку и кино Бориса "
+text_news_politics = "Хорошая новость про политику Алекса Хорошая новость про политику Алекса Хорошая новость про политику Алекса Хорошая новость про политику Алекса "
+
+article_alex = Post.objects.create(author = alex, post_type = Post.article, title = "статья про спорт Алекса", text = text_article_sport)
+article_boris = Post.objects.create(author = boris, post_type = Post.article, title = "статья о музыке и кино Бориса", text = text_article_music_cinema)
+news_boris = Post.objects.create(author = boris, post_type = Post.news, title = "новости политики Бориса", text = text_news_politics)
+
+#5
+PostCategory.objects.create(post = article_alex, category = cat_sport)
+PostCategory.objects.create(post = article_boris, category = cat_music)
+PostCategory.objects.create(post = article_boris, category = cat_cinema)
+PostCategory.objects.create(post = news_boris, category = cat_politics)
+
+#6
+comment1 = Comment.objects.create(post = article_alex, user = boris.user, text = "комментарий Бориса (один) к статье Алекса")
+comment2 = Comment.objects.create(post = article_boris, user = alex.user, text = "комментарий Алекса (два) к статье Бориса")
+comment3 = Comment.objects.create(post = news_alex, user = boris.user, text = "комментарий Бориса (три) к новости Алекса")
+comment4 = Comment.objects.create(post = news_boris, user = alex.user, text = "комментарий Алекса (четыре) к новости Бориса")
+
+#7
+article_alex.like()
+article_alex.like()
+article_alex.like()
+comment1.like()
+comment3.like()
+comment4.dislike()
+news_boris.dislike()
+
+#8
+rating_alex = (sum([post.rating*3 for post in Post.objects.filter(author=alex)]) 
+               + sum([comment.rating for comment in Comment.objects.filter(user=alex.user)]) 
+               + sum([comment.rating for comment in Comment.objects.filter(post__author=alex)]))
+alex.update_rating(rating_alex)
+
+rating_boris = (sum([post.rating*3 for post in Post.objects.filter(author=boris)]) 
+                + sum([comment.rating for comment in Comment.objects.filter(user=boris.user)]) 
+                + sum([comment.rating for comment in Comment.objects.filter(post__author=boris)]))
+boris.update_rating(rating_boris)
+ 
+#9
+best_author = Author.objects.all().order_by('-rating')[0]
+print("Лучший автор:", best_author.user.username)
+print("Рейтинг:", best_author.rating)
+
+#10
+best_article = Post.objects.filter(post_type = Post.article).order_by('-rating')[0]
+print('Лучшая статья')
+print("Дата:", best_article.created)
+print("Автор:", best_article.author.user.username)
+print("Рейтинг:", best_article.rating)
+print("Заголовок:", best_article.title)
+print("Превью:", best_article.preview())
+
+#11
+for comment in Comment.objects.filter(post = best_article):
+	print("Дата:", comment.created)
+	print("Автор:", comment.user.username)
+	print("Рейтинг:", comment.rating)
+	print("Комментарий:", comment.text)
+
